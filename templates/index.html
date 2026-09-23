@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>QueueLess BD — Skip the Line, Enjoy the Dine</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+
+        /* =========================
+           GLOBAL
+        ========================== */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #17201a;
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(34,197,94,.15),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 90% 20%,
+                    rgba(16,185,129,.13),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 50% 100%,
+                    rgba(20,184,166,.12),
+                    transparent 35%
+                ),
+                #f0fdf4;
+
+            overflow-x: hidden;
+        }
+
+        /* =========================
+           ANIMATED BACKGROUND
+        ========================== */
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 300px;
+            height: 300px;
+            background: rgba(34,197,94,.16);
+            top: 10%;
+            left: -100px;
+            animation: floatOne 9s ease-in-out infinite;
+        }
+
+        body::after {
+            width: 350px;
+            height: 350px;
+            background: rgba(16,185,129,.14);
+            right: -120px;
+            bottom: 5%;
+            animation: floatTwo 11s ease-in-out infinite;
+        }
+
+        @keyframes floatOne {
+            0%,100% {
+                transform: translate(0,0);
+            }
+
+            50% {
+                transform: translate(60px,50px);
+            }
+        }
+
+        @keyframes floatTwo {
+            0%,100% {
+                transform: translate(0,0);
+            }
+
+            50% {
+                transform: translate(-50px,-60px);
+            }
+        }
+
+        /* =========================
+           NAVBAR
+        ========================== */
+
+        .main-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(5,70,40,.97),
+                    rgba(4,120,87,.95)
+                );
+
+            box-shadow:
+                0 10px 30px rgba(4,70,40,.18);
+
+            backdrop-filter: blur(12px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 16px 22px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            color: white;
+            text-decoration: none;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 14px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #bbf7d0,
+                    #22c55e
+                );
+
+            box-shadow:
+                0 8px 20px rgba(0,0,0,.15);
+
+            font-size: 21px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,.9);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+
+            transition: .25s ease;
+        }
+
+        .nav-links a:hover {
+            color: #bbf7d0;
+            transform: translateY(-1px);
+        }
+
+        .nav-button {
+            padding: 11px 18px;
+            border-radius: 12px;
+
+            background: white;
+            color: #047857 !important;
+
+            box-shadow: 0 6px 15px rgba(0,0,0,.12);
+        }
+
+        /* =========================
+           MAIN CONTAINER
+        ========================== */
+
+        .container-main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 22px;
+        }
+
+        /* =========================
+           HERO
+        ========================== */
+
+        .hero {
+            min-height: 680px;
+
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            gap: 60px;
+
+            align-items: center;
+            padding: 80px 0;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 8px 14px;
+
+            border-radius: 999px;
+
+            background: rgba(220,252,231,.85);
+            border: 1px solid rgba(34,197,94,.18);
+
+            color: #047857;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            margin-bottom: 20px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+
+            box-shadow: 0 0 0 5px rgba(34,197,94,.15);
+
+            animation: pulseDot 1.6s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%,100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .45;
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(42px, 6vw, 72px);
+            line-height: 1.03;
+            letter-spacing: -2.5px;
+
+            margin-bottom: 22px;
+        }
+
+        .hero h1 span {
+            background:
+                linear-gradient(
+                    135deg,
+                    #047857,
+                    #16a34a,
+                    #0f766e
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-description {
+            max-width: 600px;
+
+            font-size: 18px;
+            line-height: 1.7;
+
+            color: #52605a;
+
+            margin-bottom: 32px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .primary-button,
+        .secondary-button {
+            border: none;
+            cursor: pointer;
+
+            padding: 15px 23px;
+
+            border-radius: 14px;
+
+            font-weight: 700;
+            font-size: 15px;
+
+            transition: .3s ease;
+        }
+
+        .primary-button {
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #047857,
+                    #16a34a
+                );
+
+            box-shadow:
+                0 12px 25px rgba(4,120,87,.25);
+        }
+
+        .primary-button:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 18px 30px rgba(4,120,87,.30);
+        }
+
+        .secondary-button {
+            color: #047857;
+
+            background: rgba(255,255,255,.75);
+
+            border: 1px solid rgba(4,120,87,.14);
+        }
+
+        .secondary-button:hover {
+            transform: translateY(-3px);
+            background: white;
+        }
+
+        /* =========================
+           QUEUE CARD
+        ========================== */
+
+        .queue-card-wrapper {
+            perspective: 1200px;
+        }
+
+        .queue-card {
+            position: relative;
+
+            padding: 28px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.95),
+                    rgba(236,253,245,.88)
+                );
+
+            border: 1px solid rgba(255,255,255,.9);
+
+            box-shadow:
+                0 30px 70px rgba(20,83,45,.16),
+                0 8px 20px rgba(0,0,0,.05),
+                inset 0 1px 0 rgba(255,255,255,.9);
+
+            transform:
+                rotateY(-5deg)
+                rotateX(2deg);
+
+            transition: .4s ease;
+        }
+
+        .queue-card:hover {
+            transform:
+                rotateY(0deg)
+                rotateX(0deg)
+                translateY(-8px);
+        }
+
+        .queue-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 24px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .restaurant-icon {
+            width: 48px;
+            height: 48px;
+
+            border-radius: 15px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #dcfce7,
+                    #bbf7d0
+                );
+
+            font-size: 23px;
+        }
+
+        .restaurant-name {
+            font-weight: 800;
+            font-size: 17px;
+        }
+
+        .restaurant-location {
+            font-size: 12px;
+            color: #718078;
+            margin-top: 4px;
+        }
+
+        .live-label {
+            padding: 7px 10px;
+            border-radius: 999px;
+
+            background: #dcfce7;
+            color: #15803d;
+
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .token-box {
+            padding: 25px;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #064e3b,
+                    #047857
+                );
+
+            color: white;
+
+            text-align: center;
+
+            box-shadow:
+                0 18px 35px rgba(6,78,59,.25);
+
+            margin-bottom: 20px;
+        }
+
+        .token-label {
+            font-size: 12px;
+            opacity: .75;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .token-number {
+            font-size: 58px;
+            line-height: 1;
+
+            font-weight: 900;
+
+            margin: 12px 0;
+        }
+
+        .token-status {
+            font-size: 13px;
+            opacity: .85;
+        }
+
+        .queue-stats {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+        }
+
+        .queue-stat {
+            padding: 15px 10px;
+
+            text-align: center;
+
+            background: rgba(255,255,255,.75);
+
+            border-radius: 16px;
+
+            border: 1px solid rgba(4,120,87,.07);
+        }
+
+        .queue-stat strong {
+            display: block;
+            font-size: 20px;
+            color: #047857;
+        }
+
+        .queue-stat span {
+            font-size: 11px;
+            color: #718078;
+        }
+
+        /* =========================
+           STATS
+        ========================== */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 16px;
+
+            margin-bottom: 90px;
+        }
+
+        .stat-card {
+            padding: 24px;
+
+            border-radius: 20px;
+
+            background:
+                rgba(255,255,255,.78);
+
+            border:
+                1px solid rgba(255,255,255,.85);
+
+            box-shadow:
+                0 15px 35px rgba(20,83,45,.08);
+
+            transition: .3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 25px;
+            margin-bottom: 14px;
+        }
+
+        .stat-number {
+            font-size: 30px;
+            font-weight: 900;
+            color: #047857;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #68756f;
+            margin-top: 5px;
+        }
+
+        /* =========================
+           SECTION
+        ========================== */
+
+        section {
+            padding: 90px 0;
+        }
+
+        .section-heading {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 45px;
+        }
+
+        .section-heading span {
+            color: #16a34a;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .section-heading h2 {
+            font-size: clamp(30px,4vw,46px);
+            margin: 10px 0 15px;
+        }
+
+        .section-heading p {
+            color: #68756f;
+            line-height: 1.7;
+        }
+
+        /* =========================
+           RESTAURANTS
+        ========================== */
+
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 22px;
+        }
+
+        .restaurant-card {
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.94),
+                    rgba(240,253,244,.86)
+                );
+
+            border-radius: 24px;
+
+            padding: 25px;
+
+            border:
+                1px solid rgba(255,255,255,.9);
+
+            box-shadow:
+                0 15px 40px rgba(20,83,45,.09);
+
+            transition: .3s ease;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-7px);
+            box-shadow:
+                0 25px 50px rgba(20,83,45,.14);
+        }
+
+        .food-image {
+            height: 150px;
+
+            border-radius: 19px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 65px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #dcfce7,
+                    #d1fae5,
+                    #ecfdf5
+                );
+
+            margin-bottom: 20px;
+        }
+
+        .restaurant-card h3 {
+            font-size: 19px;
+            margin-bottom: 7px;
+        }
+
+        .restaurant-card-location {
+            color: #718078;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .restaurant-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .queue-small {
+            color: #047857;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .join-small {
+            border: none;
+            cursor: pointer;
+
+            padding: 9px 14px;
+
+            border-radius: 10px;
+
+            background: #047857;
+            color: white;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition: .25s ease;
+        }
+
+        .join-small:hover {
+            background: #065f46;
+            transform: translateY(-2px);
+        }
+
+        /* =========================
+           HOW IT WORKS
+        ========================== */
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 24px;
+        }
+
+        .step-card {
+            position: relative;
+
+            padding: 30px;
+
+            border-radius: 23px;
+
+            background: rgba(255,255,255,.75);
+
+            border: 1px solid rgba(255,255,255,.9);
+
+            box-shadow:
+                0 15px 35px rgba(20,83,45,.08);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 15px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #047857,
+                    #22c55e
+                );
+
+            color: white;
+
+            font-size: 18px;
+            font-weight: 900;
+
+            margin-bottom: 20px;
+        }
+
+        .step-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            color: #68756f;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        /* =========================
+           DASHBOARD
+        ========================== */
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .dashboard-card {
+            padding: 28px;
+
+            border-radius: 25px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #064e3b,
+                    #047857
+                );
+
+            color: white;
+
+            box-shadow:
+                0 25px 50px rgba(6,78,59,.20);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 25px;
+        }
+
+        .dashboard-header h3 {
+            font-size: 19px;
+        }
+
+        .online {
+            padding: 7px 10px;
+
+            border-radius: 999px;
+
+            background: rgba(255,255,255,.13);
+
+            font-size: 11px;
+        }
+
+        .dashboard-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 16px 0;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.10);
+        }
+
+        .dashboard-row:last-child {
+            border-bottom: none;
+        }
+
+        .dashboard-row small {
+            display: block;
+            opacity: .65;
+            margin-top: 4px;
+        }
+
+        .dashboard-number {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .dashboard-info {
+            color: #14532d;
+
+            background:
+                rgba(255,255,255,.8);
+
+            border-radius: 25px;
+
+            padding: 35px;
+
+            box-shadow:
+                0 20px 45px rgba(20,83,45,.08);
+        }
+
+        .dashboard-info h2 {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .dashboard-info p {
+            color: #68756f;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            margin: 13px 0;
+            font-size: 14px;
+            color: #52605a;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            width: 22px;
+            height: 22px;
+
+            margin-right: 9px;
+
+            border-radius: 50%;
+
+            background: #dcfce7;
+            color: #15803d;
+
+            font-weight: 900;
+        }
+
+        /* =========================
+           CTA
+        ========================== */
+
+        .cta {
+            margin: 40px 0 90px;
+
+            padding: 60px 35px;
+
+            text-align: center;
+
+            border-radius: 30px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #064e3b,
+                    #047857,
+                    #059669
+                );
+
+            color: white;
+
+            box-shadow:
+                0 25px 55px rgba(6,78,59,.20);
+        }
+
+        .cta h2 {
+            font-size: clamp(30px,4vw,46px);
+            margin-bottom: 15px;
+        }
+
+        .cta p {
+            max-width: 600px;
+            margin: 0 auto 25px;
+
+            opacity: .82;
+            line-height: 1.7;
+        }
+
+        .cta .primary-button {
+            background: white;
+            color: #047857;
+        }
+
+        /* =========================
+           FOOTER
+        ========================== */
+
+        footer {
+            background:
+                linear-gradient(
+                    135deg,
+                    #022c22,
+                    #064e3b
+                );
+
+            color: white;
+
+            padding: 50px 0 25px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 40px;
+
+            padding-bottom: 35px;
+        }
+
+        .footer-brand p {
+            max-width: 400px;
+
+            color: rgba(255,255,255,.65);
+
+            line-height: 1.7;
+            margin-top: 15px;
+        }
+
+        .footer-column h4 {
+            margin-bottom: 15px;
+        }
+
+        .footer-column a {
+            display: block;
+
+            color: rgba(255,255,255,.65);
+
+            text-decoration: none;
+
+            font-size: 14px;
+
+            margin: 10px 0;
+
+            transition: .2s ease;
+        }
+
+        .footer-column a:hover {
+            color: white;
+        }
+
+        .copyright {
+            padding-top: 20px;
+
+            border-top:
+                1px solid rgba(255,255,255,.1);
+
+            text-align: center;
+
+            color: rgba(255,255,255,.45);
+
+            font-size: 12px;
+        }
+
+        /* =========================
+           MODAL
+        ========================== */
+
+        .modal {
+            position: fixed;
+            inset: 0;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background: rgba(0,30,20,.65);
+
+            backdrop-filter: blur(8px);
+
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(430px,100%);
+
+            background: white;
+
+            border-radius: 25px;
+
+            padding: 30px;
+
+            text-align: center;
+
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.25);
+
+            animation: modalIn .25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-icon {
+            font-size: 45px;
+            margin-bottom: 10px;
+        }
+
+        .modal-box h2 {
+            color: #064e3b;
+            margin-bottom: 10px;
+        }
+
+        .modal-box p {
+            color: #68756f;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .close-modal {
+            width: 100%;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 900px) {
+
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 60px 0;
+            }
+
+            .queue-card {
+                transform: none;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .restaurant-grid {
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .hero {
+                min-height: auto;
+                padding: 45px 0;
+            }
+
+            .hero h1 {
+                letter-spacing: -1.5px;
+            }
+
+            .hero-description {
+                font-size: 16px;
+            }
+
+            .stats,
+            .restaurant-grid,
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .queue-stats {
+                grid-template-columns: repeat(3,1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 60px 0;
+            }
+
+            .cta {
+                padding: 45px 22px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================== -->
+
+<nav class="main-nav">
+
+    <div class="nav-container">
+
+        <a href="#" class="logo">
+
+            <div class="logo-icon">
+                🍽️
+            </div>
+
+            <span>QueueLess BD</span>
+
+        </a>
+
+        <div class="nav-links">
+
+            <a href="#home">Home</a>
+
+            <a href="#restaurants">Restaurants</a>
+
+            <a href="#how-it-works">How It Works</a>
+
+            <a href="#dashboard">For Restaurants</a>
+
+            <a href="#restaurants" class="nav-button">
+                Join Queue
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<main id="home">
+
+    <div class="container-main">
+
+        <!-- =========================
+             HERO
+        ========================== -->
+
+        <section class="hero">
+
+            <div>
+
+                <div class="hero-badge">
+
+                    <span class="live-dot"></span>
+
+                    Live Queue Tracking
+
+                </div>
+
+                <h1>
+
+                    Skip the Line.
+                    <br>
+
+                    <span>Enjoy the Dine.</span>
+
+                </h1>
+
+                <p class="hero-description">
+
+                    QueueLess BD helps you join restaurant and food
+                    court queues virtually. Get your token, track
+                    your position, and arrive when your table is ready.
+
+                </p>
+
+                <div class="hero-buttons">
+
+                    <button
+                        class="primary-button"
+                        onclick="scrollToRestaurants()"
+                    >
+                        🍽️ Find a Restaurant
+                    </button>
+
+                    <button
+                        class="secondary-button"
+                        onclick="scrollToHowItWorks()"
+                    >
+                        How It Works →
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- LIVE QUEUE CARD -->
+
+            <div class="queue-card-wrapper">
+
+                <div class="queue-card">
+
+                    <div class="queue-top">
+
+                        <div class="restaurant-info">
+
+                            <div class="restaurant-icon">
+                                🍛
+                            </div>
+
+                            <div>
+
+                                <div class="restaurant-name">
+                                    Chattogram Food Court
+                                </div>
+
+                                <div class="restaurant-location">
+                                    📍 GEC Circle, Chattogram
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="live-label">
+                            ● LIVE
+                        </div>
+
+                    </div>
+
+
+                    <div class="token-box">
+
+                        <div class="token-label">
+                            Your Token
+                        </div>
+
+                        <div class="token-number">
+                            #24
+                        </div>
+
+                        <div class="token-status">
+                            You're in the queue
+                        </div>
+
+                    </div>
+
+
+                    <div class="queue-stats">
+
+                        <div class="queue-stat">
+
+                            <strong id="peopleAhead">
+                                5
+                            </strong>
+
+                            <span>
+                                People Ahead
+                            </span>
+
+                        </div>
+
+                        <div class="queue-stat">
+
+                            <strong id="waitTime">
+                                15m
+                            </strong>
+
+                            <span>
+                                Est. Wait
+                            </span>
+
+                        </div>
+
+                        <div class="queue-stat">
+
+                            <strong>
+                                #19
+                            </strong>
+
+                            <span>
+                            Now Serving
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             STATS
+        ========================== -->
+
+        <div class="stats">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    🏪
+                </div>
+
+                <div class="stat-number">
+                    50+
+                </div>
+
+                <div class="stat-label">
+                    Partner Restaurants
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    🎟️
+                </div>
+
+                <div class="stat-number">
+                    1,200+
+                </div>
+
+                <div class="stat-label">
+                    Virtual Tokens
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ⏱️
+                </div>
+
+                <div class="stat-number">
+                    35%
+                </div>
+
+                <div class="stat-label">
+                    Less Waiting
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ⭐
+                </div>
+
+                <div class="stat-number">
+                    4.9/5
+                </div>
+
+                <div class="stat-label">
+                    User Experience
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             RESTAURANTS
+        ========================== -->
+
+        <section id="restaurants">
+
+            <div class="section-heading">
+
+                <span>
+                    Explore
+                </span>
+
+                <h2>
+                    Find Your Next Table
+                </h2>
+
+                <p>
+                    Check queue status and join a virtual line
+                    before you reach the restaurant.
+                </p>
+
+            </div>
+
+
+            <div class="restaurant-grid">
+
+
+                <!-- CARD 1 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍛
+                    </div>
+
+                    <h3>
+                        Chattogram Food Court
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 GEC Circle, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 5 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Chattogram Food Court')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Chattogram Food Court')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 2 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🥩
+                    </div>
+
+                    <h3>
+                        Mezban House Chattogram
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Nasirabad, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 8 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Mezban House Chattogram')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Mezban House Chattogram')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 3 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍜
+                    </div>
+
+                    <h3>
+                        Chittagong Food Street
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Panchlaish, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 3 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Chittagong Food Street')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Chittagong Food Street')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 4 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍖
+                    </div>
+
+                    <h3>
+                        Mezban Corner CTG
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Agrabad, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 6 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Mezban Corner CTG')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Mezban Corner CTG')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 5 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍕
+                    </div>
+
+                    <h3>
+                        Chattogram Pizza House
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Khulshi, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 4 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Chattogram Pizza House')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Chattogram Pizza House')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 6 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍔
+                    </div>
+
+                    <h3>
+                        Burger Hub CTG
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Oxygen, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 9 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Burger Hub CTG')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Burger Hub CTG')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 7 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍗
+                    </div>
+
+                    <h3>
+                        Biryani Express CTG
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Muradpur, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 7 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Biryani Express CTG')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Biryani Express CTG')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 8 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🐟
+                    </div>
+
+                    <h3>
+                        Bay View Seafood
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Patenga, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 2 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Bay View Seafood')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Bay View Seafood')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 9 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🥢
+                    </div>
+
+                    <h3>
+                        Chinese Garden CTG
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Nasirabad, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 5 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Chinese Garden CTG')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Chinese Garden CTG')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 10 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        ☕
+                    </div>
+
+                    <h3>
+                        Cafe Chattogram
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 GEC Circle, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 4 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Cafe Chattogram')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Cafe Chattogram')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 11 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍰
+                    </div>
+
+                    <h3>
+                        Panchlaish Cafe & Bistro
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Panchlaish, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 3 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Panchlaish Cafe & Bistro')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Panchlaish Cafe & Bistro')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 12 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍗
+                    </div>
+
+                    <h3>
+                        Kacchi Bhai Chattogram
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 2 No Gate, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 10 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Kacchi Bhai Chattogram')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Kacchi Bhai Chattogram')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 13 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍕
+                    </div>
+
+                    <h3>
+                        Pizza Point Chattogram
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Halishahar, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 6 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Pizza Point Chattogram')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Pizza Point Chattogram')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 14 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍔
+                    </div>
+
+                    <h3>
+                        Chattogram Grill House
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Khulshi, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 5 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Chattogram Grill House')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Chattogram Grill House')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 15 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍛
+                    </div>
+
+                    <h3>
+                        Mezban Bari CTG
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Anderkilla, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 4 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Mezban Bari CTG')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Mezban Bari CTG')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD 16 -->
+
+                <div class="restaurant-card">
+
+                    <div class="food-image">
+                        🍜
+                    </div>
+
+                    <h3>
+                        Food Carnival Chattogram
+                    </h3>
+
+                    <div class="restaurant-card-location">
+                        📍 Nasirabad, Chattogram
+                    </div>
+
+                    <div class="restaurant-footer">
+
+                        <div class="queue-small">
+                            🟢 7 people waiting
+                        </div>
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <button class="join-small" onclick="openMenu('Food Carnival Chattogram')" style="background:#f0fdf4;color:#047857;border:1px solid #86efac">🍽️ Menu</button>
+                            <button class="join-small" onclick="joinQueue('Food Carnival Chattogram')">Join Queue</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             HOW IT WORKS
+        ========================== -->
+
+        <section id="how-it-works">
+
+            <div class="section-heading">
+
+                <span>
+                    Simple Process
+                </span>
+
+                <h2>
+                    How QueueLess BD Works
+                </h2>
+
+                <p>
+                    No more standing in long restaurant queues.
+                    Just join virtually and keep doing what you love.
+                </p>
+
+            </div>
+
+
+            <div class="steps">
+
+
+                <div class="step-card">
+
+                    <div class="step-number">
+                        01
+                    </div>
+
+                    <h3>
+                        Find a Restaurant
+                    </h3>
+
+                    <p>
+                        Choose a restaurant or food court and
+                        check its current queue status.
+                    </p>
+
+                </div>
+
+
+                <div class="step-card">
+
+                    <div class="step-number">
+                        02
+                    </div>
+
+                    <h3>
+                        Join the Queue
+                    </h3>
+
+                    <p>
+                        Get your virtual token without physically
+                        standing in the restaurant line.
+                    </p>
+
+                </div>
+
+
+                <div class="step-card">
+
+                    <div class="step-number">
+                        03
+                    </div>
+
+                    <h3>
+                        Track Your Turn
+                    </h3>
+
+                    <p>
+                        Watch your position and estimated waiting
+                        time while you enjoy your time elsewhere.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             RESTAURANT DASHBOARD
+        ========================== -->
+
+        <section id="dashboard">
+
+            <div class="section-heading">
+
+                <span>
+                    Restaurant Management
+                </span>
+
+                <h2>
+                    Powerful Queue Dashboard
+                </h2>
+
+                <p>
+                    Restaurants can manage their waiting customers
+                    and monitor queue activity from one place.
+                </p>
+
+            </div>
+
+
+            <div class="dashboard">
+
+
+                <div class="dashboard-card">
+
+                    <div class="dashboard-header">
+
+                        <h3>
+                            Live Queue
+                        </h3>
+
+                        <div class="online">
+                            ● System Online
+                        </div>
+
+                    </div>
+
+
+                    <div class="dashboard-row">
+
+                        <div>
+
+                            <strong>
+                                Currently Waiting
+                            </strong>
+
+                            <small>
+                                Customers in queue
+                            </small>
+
+                        </div>
+
+                        <div class="dashboard-number">
+                            18
+                        </div>
+
+                    </div>
+
+
+                    <div class="dashboard-row">
+
+                        <div>
+
+                            <strong>
+                                Now Serving
+                            </strong>
+
+                            <small>
+                                Current token
+                            </small>
+
+                        </div>
+
+                        <div class="dashboard-number">
+                            #19
+                        </div>
+
+                    </div>
+
+
+                    <div class="dashboard-row">
+
+                        <div>
+
+                            <strong>
+                                Average Wait
+                            </strong>
+
+                            <small>
+                                Estimated time
+                            </small>
+
+                        </div>
+
+                        <div class="dashboard-number">
+                            15m
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-info">
+
+                    <h2>
+                        Serve Customers Smarter
+                    </h2>
+
+                    <p>
+                        QueueLess BD gives restaurants a simple way
+                        to organize waiting customers and provide
+                        a better dining experience.
+                    </p>
+
+
+                    <ul class="feature-list">
+
+                        <li>
+                            Real-time queue monitoring
+                        </li>
+
+                        <li>
+                            Digital token management
+                        </li>
+
+                        <li>
+                            Faster customer turnover
+                        </li>
+
+                        <li>
+                            Better waiting experience
+                        </li>
+
+                        <li>
+                            Customer queue analytics
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             CTA
+        ========================== -->
+
+        <div class="cta">
+
+            <h2>
+                Ready to Skip the Line?
+            </h2>
+
+            <p>
+                Join QueueLess BD and spend less time waiting
+                and more time enjoying your food.
+            </p>
+
+            <button
+                class="primary-button"
+                onclick="scrollToRestaurants()"
+            >
+                Find a Restaurant →
+            </button>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- =========================
+     FOOTER
+========================== -->
+
+<footer>
+
+    <div class="container-main">
+
+        <div class="footer-grid">
+
+
+            <div class="footer-brand">
+
+                <div class="logo">
+
+                    <div class="logo-icon">
+                        🍽️
+                    </div>
+
+                    <span>
+                        QueueLess BD
+                    </span>
+
+                </div>
+
+                <p>
+                    A virtual queue management platform for
+                    restaurants and food courts in Bangladesh.
+                </p>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>
+                    Platform
+                </h4>
+
+                <a href="#home">
+                    Home
+                </a>
+
+                <a href="#restaurants">
+                    Restaurants
+                </a>
+
+                <a href="#how-it-works">
+                    How It Works
+                </a>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>
+                    For Restaurants
+                </h4>
+
+                <a href="#dashboard">
+                    Dashboard
+                </a>
+
+                <a href="#dashboard">
+                    Queue Management
+                </a>
+
+                <a href="#dashboard">
+                    Analytics
+                </a>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="copyright">
+
+            © 2026 QueueLess BD.
+            Skip the Line, Enjoy the Dine.
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+<!-- =========================
+     JOIN QUEUE MODAL
+========================== -->
+
+<div
+    id="queueModal"
+    class="modal"
+    onclick="closeModalOutside(event)"
+>
+
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            🎟️
+        </div>
+
+        <h2>
+            Queue Joined!
+        </h2>
+
+        <p id="modalMessage">
+            Your virtual queue token has been created.
+        </p>
+
+        <button
+            class="primary-button close-modal"
+            onclick="closeModal()"
+        >
+            Got It
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* =========================
+       SCROLL FUNCTIONS
+    ========================== */
+
+    function scrollToRestaurants() {
+
+        document
+            .getElementById("restaurants")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+
+    }
+
+
+    function scrollToHowItWorks() {
+
+        document
+            .getElementById("how-it-works")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+
+    }
+
+
+    /* =========================
+       JOIN QUEUE
+    ========================== */
+
+    function joinQueue(restaurantName) {
+
+        const modal =
+            document.getElementById("queueModal");
+
+        const message =
+            document.getElementById("modalMessage");
+
+        const token =
+            Math.floor(Math.random() * 20) + 25;
+
+        message.innerHTML =
+            "You have successfully joined the virtual queue at <strong>"
+            + restaurantName
+            + "</strong>.<br><br>"
+            + "Your token number is <strong>#"
+            + token
+            + "</strong>.";
+
+        modal.classList.add("show");
+
+    }
+
+
+    /* =========================
+       CLOSE MODAL
+    ========================== */
+
+    function closeModal() {
+
+        document
+            .getElementById("queueModal")
+            .classList.remove("show");
+
+    }
+
+
+    function closeModalOutside(event) {
+
+        if (event.target.id === "queueModal") {
+
+            closeModal();
+
+        }
+
+    }
+
+
+    /* =========================
+       DEMO LIVE QUEUE
+    ========================== */
+
+    let peopleAhead = 5;
+
+    setInterval(function () {
+
+        if (peopleAhead > 1) {
+
+            peopleAhead--;
+
+            document
+                .getElementById("peopleAhead")
+                .textContent = peopleAhead;
+
+            document
+                .getElementById("waitTime")
+                .textContent =
+                (peopleAhead * 3) + "m";
+
+        }
+
+    }, 12000);
+
+
+
+/* =========================
+   QUEUELESS BD - EXTRA FEATURES
+   Keeps the original design/content and adds:
+   Dark mode, restaurant search/filter,
+   menu, cart, advance payment demo,
+   order tracking and saved token.
+========================= */
+
+(function () {
+    const STORAGE = {
+        theme: "qlbd_theme",
+        token: "qlbd_token",
+        restaurant: "qlbd_restaurant",
+        order: "qlbd_order"
+    };
+
+    const MENU_DATA = {
+        default: [
+            {name:"Chicken Biryani", price:220, emoji:"🍛"},
+            {name:"Beef Tehari", price:240, emoji:"🍚"},
+            {name:"Chicken Fry", price:190, emoji:"🍗"},
+            {name:"French Fries", price:120, emoji:"🍟"},
+            {name:"Soft Drink", price:60, emoji:"🥤"},
+            {name:"Lassi", price:100, emoji:"🥛"}
+        ],
+        mezban: [
+            {name:"Mezban Beef", price:320, emoji:"🥩"},
+            {name:"Mezban Beef Kala Bhuna", price:350, emoji:"🍖"},
+            {name:"Chattogram Beef Curry", price:280, emoji:"🍛"},
+            {name:"Plain Rice", price:80, emoji:"🍚"},
+            {name:"Dal", price:70, emoji:"🥣"},
+            {name:"Borhani", price:100, emoji:"🥛"},
+            {name:"Sweet", price:90, emoji:"🍮"}
+        ],
+        biryani: [
+            {name:"Kacchi Biryani", price:280, emoji:"🍛"},
+            {name:"Chicken Biryani", price:220, emoji:"🍗"},
+            {name:"Beef Biryani", price:260, emoji:"🥩"},
+            {name:"Chicken Roast", price:180, emoji:"🍗"},
+            {name:"Borhani", price:100, emoji:"🥛"},
+            {name:"Jorda", price:100, emoji:"🍚"}
+        ],
+        burger: [
+            {name:"Classic Beef Burger", price:260, emoji:"🍔"},
+            {name:"Double Beef Burger", price:360, emoji:"🍔"},
+            {name:"Chicken Burger", price:220, emoji:"🍔"},
+            {name:"Cheese Burger", price:300, emoji:"🧀"},
+            {name:"French Fries", price:120, emoji:"🍟"},
+            {name:"Cold Coffee", price:150, emoji:"🥤"}
+        ],
+        pizza: [
+            {name:"Chicken Pizza", price:420, emoji:"🍕"},
+            {name:"Beef Pizza", price:450, emoji:"🍕"},
+            {name:"Cheese Pizza", price:380, emoji:"🍕"},
+            {name:"BBQ Chicken Pizza", price:480, emoji:"🍕"},
+            {name:"Garlic Bread", price:180, emoji:"🥖"},
+            {name:"Soft Drink", price:60, emoji:"🥤"}
+        ],
+        chinese: [
+            {name:"Chicken Chow Mein", price:220, emoji:"🍜"},
+            {name:"Beef Chow Mein", price:260, emoji:"🍜"},
+            {name:"Chicken Fried Rice", price:210, emoji:"🍚"},
+            {name:"Thai Soup", price:180, emoji:"🍲"},
+            {name:"Chicken Chili", price:280, emoji:"🍗"},
+            {name:"Spring Roll", price:140, emoji:"🥢"}
+        ],
+        seafood: [
+            {name:"Chingri Masala", price:420, emoji:"🦐"},
+            {name:"Fried Pomfret", price:480, emoji:"🐟"},
+            {name:"Rupchanda Fry", price:420, emoji:"🐟"},
+            {name:"Fish Curry", price:300, emoji:"🍛"},
+            {name:"Plain Rice", price:80, emoji:"🍚"},
+            {name:"Lemon Juice", price:100, emoji:"🍋"}
+        ],
+        cafe: [
+            {name:"Chicken Sandwich", price:220, emoji:"🥪"},
+            {name:"Club Sandwich", price:280, emoji:"🥪"},
+            {name:"Pasta Alfredo", price:320, emoji:"🍝"},
+            {name:"Cold Coffee", price:160, emoji:"☕"},
+            {name:"Cappuccino", price:180, emoji:"☕"},
+            {name:"Chocolate Cake", price:180, emoji:"🍰"}
+        ]
+    };
+
+    let currentRestaurant = "";
+    let cart = [];
+    let currentPayment = 50;
+
+    function injectStyles() {
+        if (document.getElementById("qlbd-extra-style")) return;
+        const style = document.createElement("style");
+        style.id = "qlbd-extra-style";
+        style.textContent = `
+            .qlbd-tools{display:flex;gap:8px;align-items:center}
+            .qlbd-tool-btn{border:0;cursor:pointer;padding:9px 12px;border-radius:11px;background:rgba(255,255,255,.14);color:#fff;font-weight:700}
+            .qlbd-tool-btn:hover{background:rgba(255,255,255,.24)}
+            .qlbd-panel{position:fixed;inset:0;background:rgba(0,30,20,.72);backdrop-filter:blur(8px);z-index:3000;display:none;align-items:center;justify-content:center;padding:18px}
+            .qlbd-panel.show{display:flex}
+            .qlbd-box{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:25px;padding:25px;box-shadow:0 30px 90px rgba(0,0,0,.3)}
+            .qlbd-box h2{color:#064e3b;margin-bottom:8px}
+            .qlbd-close{float:right;border:0;background:#ecfdf5;color:#047857;border-radius:10px;padding:8px 11px;cursor:pointer;font-weight:800}
+            .qlbd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+            .qlbd-item{padding:15px;border:1px solid #dcfce7;border-radius:17px;background:#f7fff9}
+            .qlbd-item-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+            .qlbd-item button,.qlbd-main-btn{border:0;background:#047857;color:#fff;padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+            .qlbd-item button:hover,.qlbd-main-btn:hover{background:#065f46}
+            .qlbd-price{color:#047857;font-weight:900}
+            .qlbd-search{width:100%;padding:13px 15px;border:1px solid #d1fae5;border-radius:13px;outline:none;margin:12px 0}
+            .qlbd-pay-options{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+            .qlbd-pay-options button{border:1px solid #bbf7d0;background:#f0fdf4;color:#047857;padding:10px 13px;border-radius:11px;cursor:pointer;font-weight:800}
+            .qlbd-pay-options button.active{background:#047857;color:#fff}
+            .qlbd-summary{background:#f0fdf4;border-radius:16px;padding:15px;margin:15px 0}
+            .qlbd-row{display:flex;justify-content:space-between;padding:7px 0}
+            .qlbd-muted{color:#68756f;font-size:13px}
+            .qlbd-tracker{margin-top:15px;padding:18px;border-radius:17px;background:linear-gradient(135deg,#064e3b,#047857);color:#fff}
+            .qlbd-progress{height:10px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;margin:12px 0}
+            .qlbd-progress span{display:block;height:100%;background:#bbf7d0;width:45%;transition:width .5s}
+            .qlbd-cart{margin-top:15px}
+            .qlbd-cart-line{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #ecfdf5}
+            .qlbd-qty{display:inline-flex;gap:6px;align-items:center}
+            .qlbd-qty button{border:0;background:#dcfce7;color:#047857;width:26px;height:26px;border-radius:7px;cursor:pointer;font-weight:900}
+            .qlbd-empty{padding:20px;text-align:center;color:#68756f}
+            body.qlbd-dark{background:#071b13;color:#ecfdf5}
+            body.qlbd-dark .restaurant-card,body.qlbd-dark .stat-card,body.qlbd-dark .step-card,body.qlbd-dark .dashboard-info{background:#10261d;color:#ecfdf5}
+            body.qlbd-dark .restaurant-card-location,body.qlbd-dark .stat-label,body.qlbd-dark .step-card p,body.qlbd-dark .dashboard-info p,body.qlbd-dark .feature-list li{color:#b9c9c0}
+            body.qlbd-dark .secondary-button{background:#10261d;color:#bbf7d0}
+            @media(max-width:600px){.qlbd-grid{grid-template-columns:1fr}.qlbd-tools{gap:5px}.qlbd-tool-btn{padding:8px}.qlbd-box{padding:18px}}
+        `;
+        document.head.appendChild(style);
+    }
+
+    function createPanel(id, title) {
+        let panel = document.getElementById(id);
+        if (panel) return panel;
+        panel = document.createElement("div");
+        panel.id = id;
+        panel.className = "qlbd-panel";
+        panel.innerHTML = `
+            <div class="qlbd-box" onclick="event.stopPropagation()">
+                <button class="qlbd-close" onclick="qlbdClose('${id}')">✕</button>
+                <h2>${title}</h2>
+                <div id="${id}-content"></div>
+            </div>`;
+        panel.onclick = function(e){ if(e.target === panel) panel.classList.remove("show"); };
+        document.body.appendChild(panel);
+        return panel;
+    }
+
+    window.qlbdClose = function(id){
+        const el=document.getElementById(id);
+        if(el) el.classList.remove("show");
+    };
+
+    window.toggleTheme = function(){
+        document.body.classList.toggle("qlbd-dark");
+        localStorage.setItem(STORAGE.theme, document.body.classList.contains("qlbd-dark") ? "dark" : "light");
+    };
+
+    function restaurantType(name){
+        const n=(name||"").toLowerCase();
+        if(n.includes("mezban")) return "mezban";
+        if(n.includes("biryani") || n.includes("kacchi")) return "biryani";
+        if(n.includes("burger") || n.includes("grill")) return "burger";
+        if(n.includes("pizza")) return "pizza";
+        if(n.includes("chinese") || n.includes("food street") || n.includes("food carnival")) return "chinese";
+        if(n.includes("seafood") || n.includes("bay view")) return "seafood";
+        if(n.includes("cafe") || n.includes("coffee") || n.includes("bistro")) return "cafe";
+        if(n.includes("food") || n.includes("court")) return "default";
+        return "default";
+    }
+
+    window.openMenu = function(name){
+        currentRestaurant=name || localStorage.getItem(STORAGE.restaurant) || "Selected Restaurant";
+        localStorage.setItem(STORAGE.restaurant,currentRestaurant);
+        const panel=createPanel("qlbdMenuPanel","🍽️ "+currentRestaurant+" — Menu");
+        const content=panel.querySelector("#qlbdMenuPanel-content");
+        const menu=MENU_DATA[restaurantType(currentRestaurant)] || MENU_DATA.default;
+        cart=[];
+        content.innerHTML=`
+            <input class="qlbd-search" id="qlbdMenuSearch" placeholder="Search food..." oninput="qlbdRenderMenu(this.value)">
+            <div class="qlbd-grid" id="qlbdMenuGrid"></div>
+            <div class="qlbd-cart" id="qlbdCart"></div>`;
+        window.qlbdRenderMenu("");
+        panel.classList.add("show");
+    };
+
+    window.qlbdRenderMenu = function(query){
+        const grid=document.getElementById("qlbdMenuGrid");
+        if(!grid)return;
+        const menu=MENU_DATA[restaurantType(currentRestaurant)] || MENU_DATA.default;
+        const q=(query||"").toLowerCase();
+        const items=menu.filter(x=>x.name.toLowerCase().includes(q));
+        grid.innerHTML=items.length ? items.map((item,i)=>`
+            <div class="qlbd-item">
+                <div class="qlbd-item-top">
+                    <div>
+                        <div style="font-size:25px">${item.emoji}</div>
+                        <strong>${item.name}</strong>
+                        <div class="qlbd-price">৳${item.price}</div>
+                    </div>
+                    <button onclick='qlbdAdd(${JSON.stringify(item)})'>Add</button>
+                </div>
+            </div>`).join("") : `<div class="qlbd-empty">No food found.</div>`;
+        renderCart();
+    };
+
+    window.qlbdAdd=function(item){
+        const found=cart.find(x=>x.name===item.name);
+        if(found) found.qty++;
+        else cart.push({...item,qty:1});
+        renderCart();
+    };
+
+    window.qlbdQty=function(name,delta){
+        const item=cart.find(x=>x.name===name);
+        if(!item)return;
+        item.qty+=delta;
+        if(item.qty<=0)cart=cart.filter(x=>x.name!==name);
+        renderCart();
+    };
+
+    function renderCart(){
+        const box=document.getElementById("qlbdCart");
+        if(!box)return;
+        if(!cart.length){
+            box.innerHTML=`<div class="qlbd-empty">Your cart is empty.</div>`;
+            return;
+        }
+        const total=cart.reduce((s,x)=>s+x.price*x.qty,0);
+        box.innerHTML=`
+            <div class="qlbd-summary">
+                <strong>🛒 Your Order</strong>
+                ${cart.map(x=>`
+                    <div class="qlbd-cart-line">
+                        <span>${x.emoji} ${x.name}</span>
+                        <span class="qlbd-qty">
+                            <button onclick='qlbdQty(${JSON.stringify(x.name)},-1)'>−</button>
+                            ${x.qty}
+                            <button onclick='qlbdQty(${JSON.stringify(x.name)},1)'>+</button>
+                            <strong>৳${x.price*x.qty}</strong>
+                        </span>
+                    </div>`).join("")}
+                <div class="qlbd-row"><strong>Total</strong><strong>৳${total}</strong></div>
+                <button class="qlbd-main-btn" onclick="openPayment(${total})">Continue to Advance Payment</button>
+            </div>`;
+    }
+
+    window.openPayment=function(total){
+        if(!cart.length){alert("Please add food first.");return;}
+        const panel=createPanel("qlbdPaymentPanel","💳 Advance Payment");
+        const content=panel.querySelector("#qlbdPaymentPanel-content");
+        currentPayment=50;
+        content.innerHTML=`
+            <p class="qlbd-muted">Demo payment only — no real money will be charged.</p>
+            <div class="qlbd-summary">
+                <div class="qlbd-row"><span>Restaurant</span><strong>${currentRestaurant}</strong></div>
+                <div class="qlbd-row"><span>Order total</span><strong>৳${total}</strong></div>
+            </div>
+            <strong>Choose advance amount</strong>
+            <div class="qlbd-pay-options">
+                ${[40,50,75,100].map(p=>`<button class="${p===50?'active':''}" onclick="selectAdvance(${p},${total})">${p}%</button>`).join("")}
+            </div>
+            <div id="qlbdAdvanceSummary"></div>
+            <strong>Payment method</strong>
+            <div class="qlbd-pay-options">
+                <button class="active" onclick="selectPay(this)">bKash</button>
+                <button onclick="selectPay(this)">Nagad</button>
+                <button onclick="selectPay(this)">Card</button>
+            </div>
+            <button class="qlbd-main-btn" onclick="confirmDemoPayment(${total})">Confirm Demo Payment</button>`;
+        panel.classList.add("show");
+        updateAdvanceSummary(total);
+    };
+
+    window.selectAdvance=function(percent,total){
+        currentPayment=percent;
+        document.querySelectorAll("#qlbdPaymentPanel .qlbd-pay-options:first-of-type button").forEach(b=>b.classList.remove("active"));
+        const buttons=document.querySelectorAll("#qlbdPaymentPanel .qlbd-pay-options:first-of-type button");
+        buttons.forEach(b=>{if(b.textContent.trim()===percent+"%")b.classList.add("active")});
+        updateAdvanceSummary(total);
+    };
+
+    function updateAdvanceSummary(total){
+        const el=document.getElementById("qlbdAdvanceSummary");
+        if(!el)return;
+        const paid=Math.round(total*currentPayment/100);
+        el.innerHTML=`<div class="qlbd-summary"><div class="qlbd-row"><span>Pay now (${currentPayment}%)</span><strong>৳${paid}</strong></div><div class="qlbd-row"><span>Remaining</span><strong>৳${total-paid}</strong></div></div>`;
+    }
+
+    window.selectPay=function(btn){
+        btn.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+    };
+
+    window.confirmDemoPayment=function(total){
+        const paid=Math.round(total*currentPayment/100);
+        const order={
+            restaurant:currentRestaurant,
+            total:total,
+            paid:paid,
+            remaining:total-paid,
+            status:"Confirmed",
+            createdAt:new Date().toISOString()
+        };
+        localStorage.setItem(STORAGE.order,JSON.stringify(order));
+        qlbdClose("qlbdPaymentPanel");
+        qlbdClose("qlbdMenuPanel");
+        alert("Order confirmed successfully! Advance payment recorded as demo.");
+        openOrderTracker();
+    };
+
+    window.openOrderTracker=function(){
+        const panel=createPanel("qlbdTrackerPanel","📦 Order & Queue Tracker");
+        const content=panel.querySelector("#qlbdTrackerPanel-content");
+        const order=JSON.parse(localStorage.getItem(STORAGE.order)||"null");
+        const token=localStorage.getItem(STORAGE.token);
+        if(!order && !token){
+            content.innerHTML=`<div class="qlbd-empty">No saved queue token or order yet.</div>`;
+        }else{
+            const progress=order?45:30;
+            content.innerHTML=`
+                ${token?`<div class="qlbd-summary"><div class="qlbd-row"><span>Saved Token</span><strong>#${token}</strong></div><div class="qlbd-row"><span>Restaurant</span><strong>${localStorage.getItem(STORAGE.restaurant)||"Restaurant"}</strong></div></div>`:""}
+                ${order?`<div class="qlbd-summary"><div class="qlbd-row"><span>Order</span><strong>${order.restaurant}</strong></div><div class="qlbd-row"><span>Total</span><strong>৳${order.total}</strong></div><div class="qlbd-row"><span>Paid</span><strong>৳${order.paid}</strong></div><div class="qlbd-row"><span>Remaining</span><strong>৳${order.remaining}</strong></div></div>`:""}
+                <div class="qlbd-tracker">
+                    <strong>Live Status</strong>
+                    <div class="qlbd-progress"><span style="width:${progress}%"></span></div>
+                    <div>Queue is being processed. Estimated ready time updates as the queue moves.</div>
+                </div>`;
+        }
+        panel.classList.add("show");
+    };
+
+    function addTools(){
+        const nav=document.querySelector(".nav-container");
+        if(!nav || document.getElementById("qlbdTools"))return;
+        const tools=document.createElement("div");
+        tools.id="qlbdTools";
+        tools.className="qlbd-tools";
+        tools.innerHTML=`
+            <button class="qlbd-tool-btn" title="Dark mode" onclick="toggleTheme()">🌙</button>
+            <button class="qlbd-tool-btn" title="My tracker" onclick="openOrderTracker()">🎟️</button>`;
+        nav.appendChild(tools);
+    }
+
+    // Add "View Menu" buttons to the original restaurant cards without removing them.
+    function addMenuButtons(){
+        document.querySelectorAll(".restaurant-card").forEach(card=>{
+            if(card.querySelector(".qlbd-menu-btn"))return;
+            const nameEl=card.querySelector("h3");
+            const join=card.querySelector(".join-small");
+            if(!nameEl || !join)return;
+            const name=nameEl.textContent.trim();
+            const btn=document.createElement("button");
+            btn.className="join-small qlbd-menu-btn";
+            btn.textContent="Menu";
+            btn.onclick=()=>openMenu(name);
+            join.parentElement.insertBefore(btn,join);
+        });
+    }
+
+    // Preserve the original joinQueue behavior, then save the generated token.
+    const originalJoin=window.joinQueue;
+    window.joinQueue=function(name){
+        currentRestaurant=name;
+        localStorage.setItem(STORAGE.restaurant,name);
+        if(typeof originalJoin==="function") originalJoin(name);
+        setTimeout(()=>{
+            const msg=document.getElementById("modalMessage");
+            const match=msg && msg.textContent.match(/#(\d+)/);
+            if(match)localStorage.setItem(STORAGE.token,match[1]);
+        },20);
+    };
+
+    document.addEventListener("DOMContentLoaded",function(){
+        injectStyles();
+        addTools();
+        addMenuButtons();
+        if(localStorage.getItem(STORAGE.theme)==="dark")document.body.classList.add("qlbd-dark");
+    });
+})();
+
+</script>
+
+</body>
+</html>
